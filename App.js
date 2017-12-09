@@ -8,7 +8,7 @@ class Inactive extends Component {
   };
   componentWillMount() {
     this._panResponder = PanResponder.create({
-      onMoveShouldSetPanResponderCapture: (evt, gestureState) => {
+      onMoveShouldSetPanResponderCapture: () => {
         clearTimeout(this.timeout);
 
         if (this.state.inactive === true) {
