@@ -1,37 +1,58 @@
-/**
- * Sample React Native App
- * https://github.com/facebook/react-native
- * @flow
- */
+import React, { Component } from "react";
+import { Platform, StyleSheet, Text, View, PanResponder } from "react-native";
+import { setTimeout } from "core-js/library/web/timers";
 
-import React, { Component } from 'react';
-import {
-  Platform,
-  StyleSheet,
-  Text,
-  View
-} from 'react-native';
+class Inactive extends Component {
+  componentWillMount() {
+    this.inactive = false;
 
-const instructions = Platform.select({
-  ios: 'Press Cmd+R to reload,\n' +
-    'Cmd+D or shake for dev menu',
-  android: 'Double tap R on your keyboard to reload,\n' +
-    'Shake or press menu button for dev menu',
-});
+    this._panResponder = PanResponder.create({
+      onMoveShouldSetPanResponderCapture: (evt, gestureState) => {
+        clearTimeout(this.timeout);
 
-export default class App extends Component<{}> {
+        if (this.inactive === true) {
+          this.props.onInactiveChange(false);
+        }
+
+        this.inactive = false;
+
+        this.timeout = setTimeout(() => {
+          this.inactive = true;
+          this.props.onInactiveChange(true);
+        }, this.props.delay);
+      },
+    });
+  }
+  componentWillUnmount() {
+    clearTimeout(this.timeout);
+  }
+
   render() {
+    const { children, delay, onInactiveChange, ...props } = this.props;
+    return (
+      <View {...props} {...this._panResponder.panHandlers}>
+        {children}
+      </View>
+    );
+  }
+}
+
+export default class App extends Component {
+  state = {
+    inactive: false,
+  };
+  handleInactive = isInactive => {
+    this.setState({
+      inactive: isInactive,
+    });
+  };
+  render() {
+    const { inactive } = this.state;
     return (
       <View style={styles.container}>
-        <Text style={styles.welcome}>
-          Welcome to React Native!
-        </Text>
-        <Text style={styles.instructions}>
-          To get started, edit App.js
-        </Text>
-        <Text style={styles.instructions}>
-          {instructions}
-        </Text>
+        <Inactive style={styles.tapMe} delay={1000} onInactiveChange={this.handleInactive}>
+          <Text style={styles.text}>{inactive ? "We're inactive" : "Waiting..."}</Text>
+        </Inactive>
       </View>
     );
   }
@@ -40,18 +61,17 @@ export default class App extends Component<{}> {
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    justifyContent: 'center',
-    alignItems: 'center',
-    backgroundColor: '#F5FCFF',
+    alignItems: "center",
+    justifyContent: "center",
   },
-  welcome: {
-    fontSize: 20,
-    textAlign: 'center',
-    margin: 10,
+  tapMe: {
+    width: "50%",
+    height: 100,
+    alignItems: "center",
+    justifyContent: "center",
+    backgroundColor: "blue",
   },
-  instructions: {
-    textAlign: 'center',
-    color: '#333333',
-    marginBottom: 5,
+  text: {
+    color: "#FFF",
   },
 });
